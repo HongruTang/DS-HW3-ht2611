@@ -93,12 +93,14 @@ tidy_data=
     values_to = "counts"
   )
 ```
+The final data has 50400 observations of 6 variables. The variables are week, day_id, day, day_end which means weekday or weekend, activity from 1 to 1440, counts.
 # b
 ```{r}
 sum_table=
   tidy_data%>%
   group_by(week,day_id,day,day_end)%>%
   summarise(counts=sum(counts))
+sum_table
 ```
 # c
 ```{r}

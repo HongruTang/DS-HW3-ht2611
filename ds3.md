@@ -227,7 +227,9 @@ tidy_data=
   )
 ```
 
-# b
+The final data has 50400 observations of 6 variables. The variables are
+week, day_id, day, day_end which means weekday or weekend, activity from
+1 to 1440, counts. \# b
 
 ``` r
 sum_table=
@@ -238,6 +240,26 @@ sum_table=
 
     ## `summarise()` has grouped output by 'week', 'day_id', 'day'. You can override
     ## using the `.groups` argument.
+
+``` r
+sum_table
+```
+
+    ## # A tibble: 35 × 5
+    ## # Groups:   week, day_id, day [35]
+    ##     week day_id day       day_end  counts
+    ##    <int>  <int> <chr>     <chr>     <dbl>
+    ##  1     1      1 Friday    weekday 480543.
+    ##  2     1      2 Monday    weekday  78828.
+    ##  3     1      3 Saturday  weekend 376254 
+    ##  4     1      4 Sunday    weekend 631105 
+    ##  5     1      5 Thursday  weekday 355924.
+    ##  6     1      6 Tuesday   weekday 307094.
+    ##  7     1      7 Wednesday weekday 340115.
+    ##  8     2      8 Friday    weekday 568839 
+    ##  9     2      9 Monday    weekday 295431 
+    ## 10     2     10 Saturday  weekend 607175 
+    ## # … with 25 more rows
 
 # c
 
