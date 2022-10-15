@@ -1,0 +1,156 @@
+---
+title: "ds3"
+author: "ht2611"
+date: "2022-10-15"
+output: github_document
+---
+
+### P1
+
+```{r}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+devtools::install_github("p8105/p8105.datasets")
+library(p8105.datasets)
+data("instacart")
+instacart
+summary(instacart)
+```
+his dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order. Variables include identifiers for user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, and number of days since prior order. Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past. In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
+
+# a
+```{r}
+most_aisle=
+  instacart%>%
+  group_by(aisle)%>%
+  summarise(n_obs=n())%>%
+  arrange(desc(n_obs))
+most_aisle
+```
+There are 134 kinds of aisles, the fresh vegetables are the most popular.
+# b
+```{r}
+most_aisle%>%
+  filter(n_obs>=10000) %>% 
+  mutate(aisle = fct_reorder(aisle, n_obs)) %>%
+  ggplot(aes(x = aisle,y=n_obs))+
+  geom_bar(stat="identity")+
+  theme(axis.text.x = element_text(angle = 70, hjust = 1))
+```
+# c
+```{r}
+ popular_table=
+  instacart%>%
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits"))%>%
+  group_by(aisle,product_name)%>%
+  summarise(n_obs=n())%>%
+  filter(min_rank(desc(n_obs))<=3)%>%
+  arrange(desc(n_obs)) %>%
+  knitr::kable()
+popular_table
+```
+# d
+```{r}
+mean_table=
+  instacart%>%
+  select(order_dow,order_hour_of_day,product_name)%>%
+  filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream"))%>%
+  group_by(product_name,order_dow)%>%
+  summarise(mean_day=mean(order_hour_of_day))%>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_day
+  )%>%
+  knitr::kable(digits = 2)
+mean_table
+```
+
+### P2
+```{r}
+raw_data=read.csv("./data/accel_data.csv")
+raw_data
+```
+# a
+```{r}
+tidy_data=
+  raw_data%>%
+  janitor::clean_names() %>%
+  mutate(
+    day_end=case_when(
+    day=="Monday" ~ "weekday",
+    day=="Tuesday" ~ "weekday",
+    day=="Wednesday" ~ "weekday",
+    day=="Thursday" ~ "weekday",
+    day=="Friday" ~ "weekday",
+    day=="Saturday" ~ "weekend",
+    day=="Sunday" ~ "weekend",
+    TRUE      ~ ""
+    ))%>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    names_prefix = "activity_",
+    values_to = "counts"
+  )
+```
+# b
+```{r}
+sum_table=
+  tidy_data%>%
+  group_by(week,day_id,day,day_end)%>%
+  summarise(counts=sum(counts))
+```
+# c
+```{r}
+tidy_data%>%
+  ggplot(aes(x=as.numeric(activity),y=counts,color=day))+
+  geom_point()+geom_line()
+```
+
+### P3
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+ny_noaa
+summary(ny_noaa)
+```
+
+The data has 2595176 observations of 7 variables. The key variables are prcp, snow, snwd, tmax, tmin. Some observations have NA on prcp, snow, snwd, tmax, tmin. The NA on tmax and tmin  has an influence on the results. The summary of tmax and tmin only shows the length. While other variables have min, quantile, mean, max and the number of NA.
+
+# a
+```{r}
+tidy_data1=
+  ny_noaa%>%
+  separate(date,into=c("year","month","day"),sep="-")%>%
+  mutate(prcp=prcp/10,tmax=as.numeric(tmax)/10,tmin=as.numeric(tmin)/10)
+snow_table=
+  ny_noaa%>%
+  count(snow)%>%
+  arrange(desc(n))
+```
+
+The most commonly observed value is 0.
+# b
+```{r}
+tidy_data1%>%
+  group_by(year,month)%>%
+  filter(month %in% c("01","07"))%>%
+  summarise(mean_tmax=mean(tmax,na.rm=TRUE))%>%
+    ggplot(aes(x = as.numeric(year), y = mean_tmax)) + 
+    geom_point() + geom_line() + 
+    facet_grid(.~month)
+```
+# C
+```{r}
+  P1=tidy_data1%>%
+  filter(!is.na(tmax),!is.na(tmin))%>%
+  ggplot(aes(x=tmax,y=tmin))+
+  geom_hex()
+
+P2=tidy_data1%>%
+  filter(snow>0 & snow<100)%>%
+  ggplot(aes(x=snow, y=year))+
+  geom_density_ridges(alpha=0.5)
+P1+P2
+```
