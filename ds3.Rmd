@@ -69,7 +69,6 @@ mean_table
 ### P2
 ```{r}
 raw_data=read.csv("./data/accel_data.csv")
-raw_data
 ```
 # a
 ```{r}
